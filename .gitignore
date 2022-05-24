@@ -1,4 +1,5 @@
-music/
+api-key
+*.mp3
 *.*.swp
 
 # Byte-compiled / optimized / DLL files

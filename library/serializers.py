@@ -5,7 +5,7 @@ from rest_framework.exceptions import APIException
 class MusicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music
-        fields = ['title', 'artist', 'album', 'from_yt', 'url_yt']
+        fields = ['title', 'filename', 'artist', 'album']
 
 class LibrarySerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,13 +15,17 @@ class LibrarySerializer(serializers.ModelSerializer):
 class YtRefSerializer(serializers.ModelSerializer):
     class Meta:
         model = YtRef
-        fields = ['yt_id', 'downloaded', 'remind']
+        fields = ['yt_id', 'downloaded', 'ignored', 'remind', 'music']
 
     def update(self, instance, validated_data):
-        if instance.downloaded:
+        if (instance.ignored or instance.downloaded) and (not instance.yt_id == 'test'):
             return instance
         if validated_data.get('downloaded', False):
             setattr(instance, 'downloaded', True)
+            instance.save()
+            return instance
+        if validated_data.get('ignored', False):
+            setattr(instance, 'ignored', True)
             instance.save()
             return instance
         setattr(instance, 'remind', getattr(instance, 'remind')+1)
