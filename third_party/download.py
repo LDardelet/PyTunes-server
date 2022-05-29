@@ -14,46 +14,60 @@ if not DOWNLOAD_PATH.exists():
         os.mkdir(MUSIC_PATH)
     os.mkdir(DOWNLOAD_PATH)
 
-ARTIST_FOLDERS = True
+ARTIST_FOLDER = True
+ALBUM_FOLDER = True
 
-TEST_ID = 'test'
 TEST_FILE = 'Test.mp3'
 
+YOUTUBE_DL_METADATA = "--add-metadata"
+
 class FileHandler:
-    def download(self, yt_id):
-        if yt_id == TEST_ID:
+    def download(self, yt_id, is_test):
+        if is_test:
             return self.FakeDownload(yt_id)
         print(f"Downloading {yt_id}")
-        filename = f"{DOWNLOAD_SUBFOLDER}{yt_id}.mp3"
-        filepath = MUSIC_PATH / filename
-        os.system(f"youtube-dl --extract-audio --audio-format mp3 -o {filepath} {YOUTUBE_URL}/watch?v={yt_id}")
-        return str(filepath)
+        relative_path = f"{DOWNLOAD_SUBFOLDER}{yt_id}.mp3"
+        os.system(f"youtube-dl --extract-audio --audio-format mp3 -o {self.abs(relative_path)} {YOUTUBE_DL_METADATA} {YOUTUBE_URL}/watch?v={yt_id}")
+        return relative_path
+
+    @property
+    def FilesFolder(self):
+        return str(MUSIC_PATH)
 
     def FakeDownload(self, yt_id):
         print(f"Fake download of {yt_id}")
-        filename = f"{DOWNLOAD_SUBFOLDER}{yt_id}.mp3"
-        filepath = MUSIC_PATH / filename
-        os.system(f"cp {TEST_FILE} {filepath}")
-        return str(filepath)
+        relative_path = f"{DOWNLOAD_SUBFOLDER}{yt_id}.mp3"
+        os.system(f"cp {TEST_FILE} {self.abs(relative_path)}")
+        return relative_path
 
-    def remove(self, filename):
-        print(f"Removing {filename}")
+    def remove(self, relative_path):
+        print(f"Removing {self.abs(relative_path)}")
         try:
-            os.remove(filename)
+            os.remove(self.abs(relative_path))
             return True
         except FileNotFoundError:
             return False
 
-    def move(self, filename, metadata):
-        new_folder, new_filename = self.StandardLocation(metadata)
-        new_path = MUSIC_PATH / new_folder
-        if not (new_path).exists():
-            os.mkdir(new_path)
-        os.rename(filename, new_path / new_filename) 
-        return new_path / new_filename
+    def move(self, old_relative_filename, metadata):
+        relative_path_parts = self.StandardLocation(metadata)
+        
+        relative_path = ''
+        for path_part in relative_path_parts[:-1]:
+            relative_path += path_part
+            if not (self.abs(relative_path)).exists():
+                os.mkdir(self.abs(relative_path))
+        relative_path += relative_path_parts[-1]
+        os.rename(self.abs(old_relative_filename), self.abs(relative_path))
+        return relative_path
 
     @staticmethod
     def StandardLocation(Metadata):
         Title = Metadata.get('title')
         Artist = Metadata.get('artist')
-        return (ARTIST_FOLDERS*f"{Artist}/"), f"{Title} - {Artist}.mp3"
+        Album = Metadata.get('album')
+        return (ARTIST_FOLDER*f"{Artist}/"), (ALBUM_FOLDER*f"{Album}/"), f"{Title} - {Artist}.mp3"
+
+    @staticmethod
+    def abs(relative_path):
+        return MUSIC_PATH / relative_path
+
