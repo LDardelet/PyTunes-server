@@ -17,10 +17,16 @@ class YtRef(models.Model):
     ignored = models.BooleanField()
     remind = models.IntegerField(default=1)
     music = models.ForeignKey(Music, null=True, on_delete=models.SET_NULL)
+    is_test = models.BooleanField(default=False)
 
 class Library(models.Model):
-    title = models.CharField(max_length=200)
-    musics = models.ManyToManyField(Music)
+    name = models.CharField(max_length=200)
+    musics = models.ManyToManyField(Music, blank=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    current_version = models.IntegerField(default=0)
     def __str__(self):
-        return f"{self.title}, {len(self.musics)} sounds"
+        return f"{self.name}, {self.musics.count()} sounds"
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    current_library = models.ForeignKey(Library, null=True, on_delete=models.SET_NULL, default=None, blank=True)

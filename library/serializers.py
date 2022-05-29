@@ -1,18 +1,31 @@
 from rest_framework import serializers
-from .models import Music, Library, YtRef
+from .models import Music, Library, YtRef, Profile
 from rest_framework.exceptions import APIException
 
 class MusicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music
-        fields = ['title', 'filename', 'artist', 'album']
+        fields = ['id', 'title', 'filename', 'artist', 'album']
+
+    def to_representation(self, value):
+        default_repr = super().to_representation(value)
+        refs = value.ytref_set.all().values('yt_id')
+        if refs:
+            default_repr['yt_id'] = refs[0]['yt_id']
+        else:
+            default_repr['yt_id'] = None
+        default_repr['id'] = value.id
+        print(default_repr)
+        return default_repr
 
 class LibrarySerializer(serializers.ModelSerializer):
+    musics = MusicSerializer(many=True, read_only=True)
     class Meta:
         model = Library
-        fields = ['title', 'musics', 'modified_on']
+        fields = ['name', 'musics', 'current_version']
 
 class YtRefSerializer(serializers.ModelSerializer):
+    music = MusicSerializer(read_only=True)
     class Meta:
         model = YtRef
         fields = ['yt_id', 'downloaded', 'ignored', 'remind', 'music']
@@ -31,3 +44,8 @@ class YtRefSerializer(serializers.ModelSerializer):
         setattr(instance, 'remind', getattr(instance, 'remind')+1)
         instance.save()
         return instance
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['current_library']
