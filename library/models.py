@@ -19,7 +19,7 @@ class YtRef(models.Model):
     music = models.ForeignKey(Music, null=True, on_delete=models.SET_NULL)
     is_test = models.BooleanField(default=False)
 
-class Library(models.Model):
+class Playlist(models.Model):
     name = models.CharField(max_length=200)
     musics = models.ManyToManyField(Music, blank=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
@@ -29,4 +29,4 @@ class Library(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    current_library = models.ForeignKey(Library, null=True, on_delete=models.SET_NULL, default=None, blank=True)
+    current_playlist = models.ForeignKey(Playlist, null=True, on_delete=models.SET_NULL, default=None, blank=True)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Music, Library, YtRef, Profile
+from .models import Music, Playlist, YtRef, Profile
 from rest_framework.exceptions import APIException
 
 class MusicSerializer(serializers.ModelSerializer):
@@ -18,10 +18,10 @@ class MusicSerializer(serializers.ModelSerializer):
         print(default_repr)
         return default_repr
 
-class LibrarySerializer(serializers.ModelSerializer):
+class PlaylistSerializer(serializers.ModelSerializer):
     musics = MusicSerializer(many=True, read_only=True)
     class Meta:
-        model = Library
+        model = Playlist
         fields = ['name', 'musics', 'current_version']
 
 class YtRefSerializer(serializers.ModelSerializer):
@@ -48,4 +48,4 @@ class YtRefSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['current_library']
+        fields = ['current_playlist']
